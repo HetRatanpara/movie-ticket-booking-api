@@ -1,157 +1,165 @@
 
+# 📄`README.md`
+
 ````markdown
-# 🎟️ Ticket Booking API — Backend
+# Ticket Booking API — Backend
 
-**Project**: Movie Ticket Booking Backend  
-**Stack**: Django + Django REST Framework + JWT (SimpleJWT)  
-**Status**: ✅ Complete (Phases 1–7 implemented)
-
----
-
-## 🧩 Features
-
-- User registration and JWT authentication
-- Movies & shows listing (with filters)
-- Atomic seat booking with concurrency protection
-- Booking cancellation (idempotent, owner-only)
-- User's booking history
-- Auto-generated API schema with Swagger & ReDoc (`drf-spectacular`)
+**Project**: Movie Ticket Booking backend (Django + DRF + JWT)  
+**Status**: Complete
 
 ---
 
-## ⚙️ Getting Started (Windows / Linux / macOS)
+## Quick summary
 
-### 1. Clone the repository
+This project provides:
 
-```bash
-git clone https://github.com/HetRatanpara/movie-ticket-booking-api.git
-cd movie-ticket-booking-api
+- User signup and JWT login (simplejwt)
+- Movie & Show listing
+- Book a seat (atomic booking with concurrency protection)
+- Cancel booking (owner-only, idempotent)
+- My bookings (list user's bookings)
+- Admin portal to manage Movies, Shows, Bookings, and Users
+- OpenAPI schema and interactive docs (`drf-spectacular` + Swagger / Redoc)
 
-````
+---
 
-### 2. Create & activate virtual environment
+## Run locally (Windows / Linux)
 
+1. Create & activate virtualenv
 ```bash
 python -m venv .venv
-
 # Windows
 .venv\Scripts\activate
-
 # macOS / Linux
 source .venv/bin/activate
-```
+````
 
-### 3. Install dependencies
+2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Apply migrations
+3. Apply migrations
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. (Optional) Create a superuser
+4. Create superuser (admin)
 
 ```bash
 python manage.py createsuperuser
+# follow prompts for username, email, password
 ```
 
-### 6. Run development server
+5. Run dev server
 
 ```bash
 python manage.py runserver
 ```
 
-> The API will be available at: **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+API will be available at `http://127.0.0.1:8000/`.
 
 ---
 
-## 📚 API Documentation
+## Admin portal
 
-* **OpenAPI schema (JSON)**: [http://127.0.0.1:8000/schema/](http://127.0.0.1:8000/schema/)
-* **Swagger UI**: [http://127.0.0.1:8000/swagger/](http://127.0.0.1:8000/swagger/)
-* **ReDoc**: [http://127.0.0.1:8000/redoc/](http://127.0.0.1:8000/redoc/)
+* URL: `http://127.0.0.1:8000/admin/`
+* Use the superuser credentials you created with `createsuperuser` to log in.
+* Admin can manage:
+
+  * **Users** — view and manage user accounts
+  * **Movies** — create/update/delete movies
+  * **Shows** — schedule shows (screen, date_time, total_seats)
+  * **Bookings** — view bookings, cancel or inspect booking history
+
+> Tip: Admin actions are useful for creating initial movies/shows for testing the booking flow.
 
 ---
 
-## 🔐 Authentication (JWT)
+## Swagger & Schema
 
-### Signup
+* OpenAPI JSON: `http://127.0.0.1:8000/schema/`
+* Swagger UI: `http://127.0.0.1:8000/swagger/`
+* ReDoc: `http://127.0.0.1:8000/redoc/`
+
+---
+
+## Auth (JWT)
+
+1. **Signup**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/auth/signup/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "alice", "email": "alice@example.com", "password": "pass123"}'
+  -d '{"username":"alice","email":"alice@example.com","password":"pass123"}'
 ```
 
-### Login (Get Tokens)
+2. **Login** (get tokens)
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "alice", "password": "pass123"}'
+  -d '{"username":"alice","password":"pass123"}'
 ```
 
-**Response:**
-
-```json
-{
-  "access": "<ACCESS_TOKEN>",
-  "refresh": "<REFRESH_TOKEN>"
-}
-```
-
-### Authenticated Request Example
+3. **Use access token**
 
 ```bash
-curl -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  http://127.0.0.1:8000/api/auth/me/
+curl -H "Authorization: Bearer <ACCESS_TOKEN>" http://127.0.0.1:8000/api/auth/me/
 ```
 
 ---
 
-## 🔑 Key API Endpoints
+## Key API endpoints
 
-| Method | Endpoint                        | Description                                                   |
-| ------ | ------------------------------- | ------------------------------------------------------------- |
-| `GET`  | `/api/movies/`                  | List all movies (paginated)                                   |
-| `GET`  | `/api/movies/<movie_id>/shows/` | List shows for a movie (supports `?from=ISO_DATETIME` filter) |
-| `POST` | `/api/shows/<id>/book/`         | Book a seat (body: `{ "seat_number": "A1" }`) — auth required |
-| `GET`  | `/api/my-bookings/`             | List current user's bookings — auth required                  |
-| `POST` | `/api/bookings/<id>/cancel/`    | Cancel a booking — auth required, owner-only                  |
+* `GET  /api/movies/` — list movies
+* `GET  /api/movies/<movie_id>/shows/` — list shows for a movie
+* `POST /api/shows/<id>/book/` — book a seat (auth required)
+* `GET  /api/my-bookings/` — list my bookings (auth required)
+* `POST /api/bookings/<id>/cancel/` — cancel booking (auth required)
 
 ---
 
-## 🧠 Business Logic & Concurrency
+## Concurrency & business rules
 
-* **Seat Booking**
-
-  * Implemented using `select_for_update()` inside a DB transaction
-  * Unique DB constraint on show + seat to prevent double booking
-  * Custom retry logic in `Booking.create_booking()` handles race conditions (e.g., concurrent `IntegrityError`)
-  * Validates seat format and ensures `seat_number <= total_seats`
-
-* **Booking Cancellation**
-
-  * Sets booking status to `CANCELLED`
-  * Cancelling is **idempotent** — repeated requests won’t cause errors
-  * Cancelled seats become available again
+* Booking is performed inside a DB transaction using `select_for_update()`.
+* Unique DB constraint prevents duplicate bookings.
+* Retry logic for transient concurrency conflicts.
+* Cancelling sets status to `CANCELLED` so seat becomes available again.
 
 ---
 
-## 📝 License
+## Tests
 
-This project is for educational/demo purposes. Please modify and use as needed for personal or commercial projects.
+Run unit tests:
 
----
-
-## 🙋‍♂️ Support or Questions?
-
-Feel free to open an issue or contribute via pull requests.
-
+```bash
+python manage.py test bookings
 ```
 
+Tests cover:
+
+* Double-booking prevention
+* Capacity enforcement (overbooking)
+* Cancellation freeing seats
+
+---
+
+## Production notes
+
+* Use PostgreSQL in production.
+* Set `DEBUG=False` and configure `ALLOWED_HOSTS`.
+* Use environment variables (`django-environ`).
+* Consider Sentry/logging and CI.
+
+---
+
+## Submission
+
+* GitHub Repository: [https://github.com/HetRatanpara/movie-ticket-booking-api](https://github.com/HetRatanpara/movie-ticket-booking-api)
+
+```
+```
