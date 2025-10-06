@@ -1,0 +1,95 @@
+# ---------------------------------
+# Django & Python project ignores
+# ---------------------------------
+
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+*.env
+*.venv
+
+# Django specific
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# Migrations (optional — keep them if needed for reviewers)
+# Uncomment next line if you don’t want to commit migration files
+# */migrations/
+
+# IDE & editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Test / coverage / build
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+site/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Logs & cache
+*.log
+*.pot
+*.mo
+*.cache
+*.pid
+*.tmp
+*.bak
+*.orig
+
+# Local settings / secrets
+.env
+.env.*
+config/settings/local.py
+
+# Byte-compiled C extensions
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# mypy / pyright / pytest
+.mypy_cache/
+.pytest_cache/
+.pyright/
+.dmypy.json
+.cache/
+
+# VSCode & JetBrains settings
+.vscode/
+.idea/
+*.iml
+
+# GitHub Actions cache (if any)
+.github/workflows/__pycache__/
+
+# Optional: ignore collected static files
+static/
