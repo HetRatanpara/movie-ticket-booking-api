@@ -1,156 +1,220 @@
+# 🎟️ Movie Ticket Booking API (Backend Intern Assignment)
 
-````markdown
-# 🎟️ Ticket Booking API — Backend
-
-**Project**: Movie Ticket Booking Backend  
-**Stack**: Django + Django REST Framework + JWT (SimpleJWT)  
-**Status**: ✅ Complete (Phases 1–7 implemented)
+**Tech Stack:** Python · Django · Django REST Framework · JWT (SimpleJWT) · Swagger (drf-spectacular)
 
 ---
 
-## 🧩 Features
+## 📌 Objective
 
-- User registration and JWT authentication
-- Movies & shows listing (with filters)
-- Atomic seat booking with concurrency protection
-- Booking cancellation (idempotent, owner-only)
-- User's booking history
-- Auto-generated API schema with Swagger & ReDoc (`drf-spectacular`)
+A Movie Ticket Booking System backend built with Django and Django REST Framework.  
+Implements authentication, movie/show management, seat booking with concurrency protection,  
+and full Swagger documentation at `/swagger/`.
 
 ---
 
-## ⚙️ Getting Started (Windows / Linux / macOS)
+## 🛠️ Setup Instructions
 
-### 1. Clone the repository
-
+### 1. Clone the Repository
 ```bash
-git clone <your-repo-url>
-cd <your-repo-name>
-````
+git clone https://github.com/hetratanpara/movie-ticket-booking-api.git
+cd movie-ticket-booking-api
+```
 
-### 2. Create & activate virtual environment
-
+### 2. Create & Activate Virtual Environment
 ```bash
 python -m venv .venv
-
 # Windows
 .venv\Scripts\activate
-
 # macOS / Linux
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
-
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Apply migrations
-
+### 4. Apply Migrations
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. (Optional) Create a superuser
-
+### 5. Create Superuser (Admin)
 ```bash
 python manage.py createsuperuser
 ```
 
-### 6. Run development server
-
+### 6. Run Development Server
 ```bash
 python manage.py runserver
 ```
-
-> The API will be available at: **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
-
----
-
-## 📚 API Documentation
-
-* **OpenAPI schema (JSON)**: [http://127.0.0.1:8000/schema/](http://127.0.0.1:8000/schema/)
-* **Swagger UI**: [http://127.0.0.1:8000/swagger/](http://127.0.0.1:8000/swagger/)
-* **ReDoc**: [http://127.0.0.1:8000/redoc/](http://127.0.0.1:8000/redoc/)
+Server runs at http://127.0.0.1:8000/
 
 ---
 
-## 🔐 Authentication (JWT)
+## 🔑 Authentication (JWT)
 
 ### Signup
-
 ```bash
-curl -X POST http://127.0.0.1:8000/api/auth/signup/ \
-  -H "Content-Type: application/json" \
-  -d '{"username": "alice", "email": "alice@example.com", "password": "pass123"}'
-```
-
-### Login (Get Tokens)
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -d '{"username": "alice", "password": "pass123"}'
-```
-
-**Response:**
-
-```json
+POST /api/auth/signup/
+Content-Type: application/json
 {
-  "access": "<ACCESS_TOKEN>",
-  "refresh": "<REFRESH_TOKEN>"
+  "username": "alice",
+  "email": "alice@example.com",
+  "password": "pass123"
 }
 ```
 
-### Authenticated Request Example
-
+### Login (Get JWT)
 ```bash
-curl -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  http://127.0.0.1:8000/api/auth/me/
+POST /api/auth/login/
+Content-Type: application/json
+{
+  "username": "alice",
+  "password": "pass123"
+}
+```
+
+**Response:**
+```json
+{
+  "refresh": "<REFRESH_TOKEN>",
+  "access": "<ACCESS_TOKEN>"
+}
+```
+
+Use the access token for all protected endpoints:
+
+```
+Authorization: Bearer <ACCESS_TOKEN>
 ```
 
 ---
 
-## 🔑 Key API Endpoints
+## 🎬 API Endpoints
 
-| Method | Endpoint                        | Description                                                   |
-| ------ | ------------------------------- | ------------------------------------------------------------- |
-| `GET`  | `/api/movies/`                  | List all movies (paginated)                                   |
-| `GET`  | `/api/movies/<movie_id>/shows/` | List shows for a movie (supports `?from=ISO_DATETIME` filter) |
-| `POST` | `/api/shows/<id>/book/`         | Book a seat (body: `{ "seat_number": "A1" }`) — auth required |
-| `GET`  | `/api/my-bookings/`             | List current user's bookings — auth required                  |
-| `POST` | `/api/bookings/<id>/cancel/`    | Cancel a booking — auth required, owner-only                  |
+### ⚙️ Admin
+- **[GET]** `/admin/` – Django Admin Portal (Superuser login required)  
 
----
+### 🔑 Authentication
+- **[POST]** `/api/auth/signup/` – Register a new user (No Auth)  
+- **[POST]** `/api/auth/login/` – Obtain JWT tokens (No Auth)  
+- **[GET]** `/api/auth/me/` – Get current user info (Requires Auth)  
 
-## 🧠 Business Logic & Concurrency
+### 🎥 Movies & Shows
+- **[GET]** `/api/movies/` – List all movies (No Auth)  
+- **[GET]** `/api/movies/{movie_id}/shows/` – List shows for a specific movie (No Auth)  
 
-* **Seat Booking**
+### 🎟️ Bookings
+- **[POST]** `/api/shows/{id}/book/` – Book a seat (`seat_number`) (Requires Auth)  
+- **[GET]** `/api/my-bookings/` – View logged-in user’s bookings (Requires Auth)  
+- **[POST]** `/api/bookings/{id}/cancel/` – Cancel own booking (Requires Auth)  
 
-  * Implemented using `select_for_update()` inside a DB transaction
-  * Unique DB constraint on show + seat to prevent double booking
-  * Custom retry logic in `Booking.create_booking()` handles race conditions (e.g., concurrent `IntegrityError`)
-  * Validates seat format and ensures `seat_number <= total_seats`
-
-* **Booking Cancellation**
-
-  * Sets booking status to `CANCELLED`
-  * Cancelling is **idempotent** — repeated requests won’t cause errors
-  * Cancelled seats become available again
 
 ---
 
-## 📝 License
+## ⚙️ Business Logic
 
-This project is for educational/demo purposes. Please modify and use as needed for personal or commercial projects.
+- **Prevent double booking**: Unique constraint on (show, seat_number) when status='booked'.  
+- **Prevent overbooking**: Checks existing count vs. total_seats.  
+- **Free seat after cancel**: Cancelling sets status to cancelled, freeing the seat.  
+- **Concurrency safe**: Uses `transaction.atomic()` + `select_for_update()` + retry on `IntegrityError`.  
 
 ---
 
-## 🙋‍♂️ Support or Questions?
+## 🧾 Swagger Documentation
 
-Feel free to open an issue or contribute via pull requests.
+- Swagger UI: http://127.0.0.1:8000/swagger/  
+- Redoc: http://127.0.0.1:8000/redoc/  
+- OpenAPI Schema: http://127.0.0.1:8000/schema/  
 
+JWT authentication and all endpoints are documented automatically via drf-spectacular.
+
+---
+
+## 🧩 Admin Portal
+
+Admin can manage Movies, Shows, Bookings, and Users.  
+
+- URL: http://127.0.0.1:8000/admin/  
+- Login: Use the superuser credentials created earlier.  
+
+---
+
+## 🧪 Testing
+
+Run unit tests for booking logic:
+```bash
+python manage.py test bookings
 ```
 
+Covers:
+- Preventing duplicate bookings  
+- Preventing overbooking  
+- Ensuring cancel frees the seat  
+
+---
+
+## 🧠 Bonus Features Implemented
+
+- Retry logic for concurrent booking attempts (IntegrityError handling)  
+- Detailed validation for seat format & range  
+- Clear, friendly error responses  
+- Owner-only booking cancellation  
+- Unit tests for booking logic  
+- Comprehensive Swagger docs  
+
+---
+
+## 📦 Deliverables Summary
+
+✅ Django project code  
+✅ requirements.txt  
+✅ Well-documented README.md (this file)  
+✅ Swagger docs at /swagger/  
+
+---
+
+## 🚀 Expected API Flow
+
+1. `POST /api/auth/signup/` → register user  
+2. `POST /api/auth/login/` → obtain JWT  
+3. `GET /api/movies/` → view all movies  
+4. `GET /api/movies/<id>/shows/` → view shows for a movie  
+5. `POST /api/shows/<id>/book/` → book seat  
+6. `GET /api/my-bookings/` → view your bookings  
+7. `POST /api/bookings/<id>/cancel/` → cancel a booking  
+
+---
+
+## 🧰 Requirements
+
+```shell
+asgiref==3.10.0
+attrs==25.3.0
+Django==5.2.7
+django-cors-headers==4.9.0
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+drf-spectacular==0.27.2
+inflection==0.5.1
+jsonschema==4.25.1
+jsonschema-specifications==2025.9.1
+PyJWT==2.10.1
+PyYAML==6.0.3
+referencing==0.36.2
+rpds-py==0.27.1
+sqlparse==0.5.3
+typing_extensions==4.15.0
+tzdata==2025.2
+uritemplate==4.2.0
+```
+
+---
+
+## 👤 Author
+
+**Het Ratanpara**  
+Backend Developer Intern Candidate  
+GitHub: https://github.com/HetRatanpara/movie-ticket-booking-api 
