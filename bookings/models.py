@@ -1,4 +1,3 @@
-# bookings/models.py
 import re
 import time
 from django.db import models, transaction, IntegrityError
@@ -9,7 +8,7 @@ from django.utils import timezone
 
 User = get_user_model()
 
-# Status choices
+
 class Status(models.TextChoices):
     BOOKED = "booked", "Booked"
     CANCELLED = "cancelled", "Cancelled"

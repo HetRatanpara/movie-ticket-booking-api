@@ -1,4 +1,3 @@
-# bookings/views.py
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -42,9 +41,7 @@ class MeView(generics.GenericAPIView):
     
     
 
-# -------------------------
-# Auth endpoints (signup + me)
-# -------------------------
+
 @extend_schema(
     request=UserSignupSerializer,
     responses={201: UserSignupSerializer},
@@ -76,9 +73,6 @@ class MeView(generics.GenericAPIView):
         return Response({"id": u.id, "username": u.username, "email": u.email})
 
 
-# -------------------------
-# Movies & Shows
-# -------------------------
 @extend_schema(tags=["Movies"])
 class MovieListView(generics.ListAPIView):
     """
@@ -123,9 +117,7 @@ class ShowByMovieListView(generics.ListAPIView):
         return qs.order_by("date_time")
 
 
-# -------------------------
-# Booking actions
-# -------------------------
+
 class BookSeatRequestSerializer(serializers.Serializer):
     seat_number = serializers.CharField(max_length=10)
 
